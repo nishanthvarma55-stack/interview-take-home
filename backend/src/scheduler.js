@@ -1,7 +1,7 @@
 const cron = require('node-cron');
 const axios = require('axios');
 const { generatePayload } = require('./payloadGen');
-const { insertResponse, getRecentResponseTimes } = require('./db');
+const { insertResponse, getRecentResponseTimes, getDb } = require('./db');
 const { detectAnomaly } = require('./anomaly');
 
 const HTTPBIN_URL = process.env.HTTPBIN_URL || 'https://httpbin.org/anything';
@@ -42,13 +42,14 @@ async function pingHttpbin() {
   };
 
   const id = insertResponse(record);
-  const inserted = { id, ...record };
+  // Fetch the stored row so the broadcast has the same snake_case shape as the REST API
+  const storedRecord = getDb().prepare('SELECT * FROM responses WHERE id = ?').get(id);
 
   if (broadcastFn) {
-    broadcastFn({ type: 'new_response', data: inserted });
+    broadcastFn({ type: 'new_response', data: storedRecord });
   }
 
-  return inserted;
+  return storedRecord;
 }
 
 function startScheduler() {

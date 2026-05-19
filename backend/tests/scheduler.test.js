@@ -49,14 +49,14 @@ describe('pingHttpbin', () => {
   it('records the response time in milliseconds', async () => {
     axios.post.mockResolvedValue({ status: 200, data: {} });
     const result = await pingHttpbin();
-    expect(result.responseTimeMs).toBeGreaterThanOrEqual(0);
-    expect(typeof result.responseTimeMs).toBe('number');
+    expect(result.response_time_ms).toBeGreaterThanOrEqual(0);
+    expect(typeof result.response_time_ms).toBe('number');
   });
 
   it('stores error response when axios throws (network failure)', async () => {
     axios.post.mockRejectedValue(new Error('Network error'));
     const result = await pingHttpbin();
-    expect(result.statusCode).toBe(0);
+    expect(result.status_code).toBe(0);
     const rows = getResponses({ limit: 10 });
     expect(rows).toHaveLength(1);
     expect(rows[0].status_code).toBe(0);
@@ -67,7 +67,7 @@ describe('pingHttpbin', () => {
     err.response = { status: 404 };
     axios.post.mockRejectedValue(err);
     const result = await pingHttpbin();
-    expect(result.statusCode).toBe(404);
+    expect(result.status_code).toBe(404);
   });
 
   it('calls broadcast function with new_response event', async () => {
